@@ -32,6 +32,8 @@ def option_parser():
 
     parser.add_option('-r', '--recursive', dest='recursive',
             action='store_true', help='recusively copy directories (OPTIONAL)')
+    parser.add_option('-i', '--interpret-paths', dest='interpret', action='store_true',
+            help='find %{xxx} tags in source and dest paths and fill them with values')
 
     return parser
 
@@ -52,13 +54,18 @@ def parse_args():
 
     return opts, args
 
-def do_pscp(hosts, localargs, remote, opts):
+def do_pscp(hosts, local, remote, opts):
     if opts.outdir and not os.path.exists(opts.outdir):
         os.makedirs(opts.outdir)
     if opts.errdir and not os.path.exists(opts.errdir):
         os.makedirs(opts.errdir)
     manager = Manager(opts)
     for host, port, user in hosts:
+        if opts.interpret:
+            my_local = [ x.replace('%{host}', host) for x in local ]
+            my_remote = remote.replace('%{host}', host)
+        else:
+            my_local, my_remote = local, remote
         cmd = ['scp', '-qC']
         if opts.options:
             for opt in opts.options:
@@ -69,11 +76,11 @@ def do_pscp(hosts, localargs, remote, opts):
             cmd.append('-r')
         if opts.extra:
             cmd.extend(opts.extra)
-        cmd.extend(localargs)
+        cmd.extend(my_local)
         if user:
-            cmd.append('%s@%s:%s' % (user, host, remote))
+            cmd.append('%s@%s:%s' % (user, host, my_remote))
         else:
-            cmd.append('%s:%s' % (host, remote))
+            cmd.append('%s:%s' % (host, my_remote))
         t = Task(host, port, user, cmd, opts)
         manager.add_task(t)
     try:

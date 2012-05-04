@@ -34,6 +34,8 @@ def option_parser():
             action='store_true', help='recusively copy directories (OPTIONAL)')
     parser.add_option('-L', '--localdir', dest='localdir',
             help='output directory for remote file copies')
+    parser.add_option('-i', '--interpret-paths', dest='interpret', action='store_true',
+            help='find %{xxx} tags in source and dest paths and fill them with values')
 
     return parser
 
@@ -73,10 +75,15 @@ def do_pslurp(hosts, remote, local, opts):
             os.mkdir(dirname)
     manager = Manager(opts)
     for host, port, user in hosts:
-        if opts.localdir:
-            localpath = "%s/%s/%s" % (opts.localdir, host, local)
+        if opts.interpret:
+            my_local = [ x.replace('%{host}', host) for x in local ]
+            my_remote = remote.replace('%{host}', host)
         else:
-            localpath = "%s/%s" % (host, local)
+            my_local, my_remote = local, remote
+        if opts.localdir:
+            localpath = "%s/%s/%s" % (opts.localdir, host, my_local)
+        else:
+            localpath = "%s/%s" % (host, my_local)
         cmd = ['scp', '-qC']
         if opts.options:
             for opt in opts.options:
@@ -88,9 +95,9 @@ def do_pslurp(hosts, remote, local, opts):
         if opts.extra:
             cmd.extend(opts.extra)
         if user:
-            cmd.append('%s@%s:%s' % (user, host, remote))
+            cmd.append('%s@%s:%s' % (user, host, my_remote))
         else:
-            cmd.append('%s:%s' % (host, remote))
+            cmd.append('%s:%s' % (host, my_remote))
         cmd.append(localpath)
         t = Task(host, port, user, cmd, opts)
         manager.add_task(t)

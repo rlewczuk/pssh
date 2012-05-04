@@ -33,10 +33,14 @@ def option_parser():
             action='store_true', help='recusively copy directories (OPTIONAL)')
     parser.add_option('-a', '--archive', dest='archive', action='store_true',
             help='use rsync -a (archive mode) (OPTIONAL)')
+    parser.add_option('-d', '--delete', dest='delete', action='store_true',
+            help='delete extraneous files from dest dirs')
     parser.add_option('-z', '--compress', dest='compress', action='store_true',
             help='use rsync compression (OPTIONAL)')
     parser.add_option('-S', '--ssh-args', metavar="ARGS", dest='ssh_args',
             action='store', help='extra arguments for ssh')
+    parser.add_option('-i', '--interpret-paths', dest='interpret', action='store_true',
+            help='find %{xxx} tags in source and dest paths and fill them with values')
 
     return parser
 
@@ -64,6 +68,11 @@ def do_prsync(hosts, local, remote, opts):
         os.makedirs(opts.errdir)
     manager = Manager(opts)
     for host, port, user in hosts:
+        if opts.interpret:
+            my_local = [ x.replace('%{host}', host) for x in local ]
+            my_remote = remote.replace('%{host}', host)
+        else:
+            my_local, my_remote = local, remote
         ssh = ['ssh']
         if opts.options:
             for opt in opts.options:
@@ -80,15 +89,17 @@ def do_prsync(hosts, local, remote, opts):
             cmd.append('-r')
         if opts.archive:
             cmd.append('-a')
+        if opts.delete:
+            cmd.append('--delete')
         if opts.compress:
             cmd.append('-z')
         if opts.extra:
             cmd.extend(opts.extra)
-        cmd.extend(local)
+        cmd.extend(my_local)
         if user:
-            cmd.append('%s@%s:%s' % (user, host, remote))
+            cmd.append('%s@%s:%s' % (user, host, my_remote))
         else:
-            cmd.append('%s:%s' % (host, remote))
+            cmd.append('%s:%s' % (host, my_remote))
         t = Task(host, port, user, cmd, opts)
         manager.add_task(t)
     try:

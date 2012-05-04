@@ -1,0 +1,35 @@
+# /etc/pssh/hostgroups example
+
+# Group definition looks like this:
+#
+# name (comment): member1 [, member2 [, member3 [, ...] ] ]
+#
+# Members can be hostnames 
+#
+# Examples:
+# http (HTTP servers):
+
+
+
+
+
+# Some test data (not really readable)
+
+grp1 (some group): a, b
+
+grp2: @grp3, @grp4
+
+grp3: c, b
+
+grp4: c, d, a
+
+grp5: a,\
+	b\
+	,\
+	c
+
+grp6: a
+
+grp7: @grp6
+
+grp8: user@host:222, user@host, host:333

@@ -28,6 +28,9 @@ def common_parser():
     parser.add_option('-h', '--hosts', dest='host_files', action='append',
             metavar='HOST_FILE',
             help='hosts file (each line "[user@]host[:port]")')
+    parser.add_option('-g', '--groups', dest='host_groups', action='append',
+            metavar='HOSTGROUPS_FILE', 
+            help='host groups (as defined in /etc/pssh/hostgroups file)')
     parser.add_option('-H', '--host', dest='host_strings', action='append',
             metavar='HOST_STRING',
             help='additional host entries ("[user@]host[:port]")')

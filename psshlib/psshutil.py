@@ -4,8 +4,21 @@
 import fcntl
 import string
 import sys
+from groupsets import GroupSet
 
 HOST_FORMAT = 'Host format is [user@]host[:port] [user]'
+
+
+GROUP_CONF = '/etc/pssh/hostgroups'
+
+
+def read_host_groups(groups, default_user=None, default_port=None):
+    """Reads given host groups and returns list of (host, port, user) triples."""
+    grpset = GroupSet(GROUP_CONF)
+    grps = [grpset[g] for g in groups]
+    grps = [x for x in set([i for o in grps for i in o])]
+    grps.sort()
+    return [parse_host_entry(x,default_user,default_port) for x in grps]
 
 
 def read_host_files(paths, default_user=None, default_port=None):

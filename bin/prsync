@@ -52,7 +52,7 @@ def parse_args():
     if len(args) < 2:
         parser.error('Remote path not specified.')
 
-    if not opts.host_files and not opts.host_strings:
+    if not opts.host_files and not opts.host_strings and not opts.host_groups:
         parser.error('Hosts not specified.')
 
     return opts, args
@@ -117,4 +117,6 @@ if __name__ == "__main__":
     if opts.host_strings:
         for s in opts.host_strings:
             hosts.extend(psshutil.parse_host_string(s, default_user=opts.user))
+    if opts.host_groups:
+            hosts.extend(psshutil.read_host_groups(opts.host_groups, default_user=opts.user))
     do_prsync(hosts, local, remote, opts)
